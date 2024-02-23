@@ -1,0 +1,16 @@
+---
+title: "DataExploration"
+author: "Vix Talbot and Haziel Garcia Sanchez"
+date: "2024-02-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(ISLR)
+library(ISLR2)
+
+data(College)
+head(College)
+
+```
