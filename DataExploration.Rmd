@@ -4,6 +4,26 @@ author: "Vix Talbot and Haziel Garcia Sanchez"
 date: "2024-02-23"
 output: html_document
 ---
+Data Description:
+
+The College data set contains a number of variables for 777 different universities and colleges in the US. The variables are
+
+• Private : Public/private indicator
+• Apps : Number of applications received
+• Accept : Number of applicants accepted
+• Enroll : Number of new students enrolled
+• Top10perc : New students from top 10 % of high school class • Top25perc : New students from top 25 % of high school class 
+• F.Undergrad : Number of full-time undergraduates
+• P.Undergrad : Number of part-time undergraduates
+• Outstate : Out-of-state tuition
+• Room.Board : Room and board costs
+• Books : Estimated book costs
+• Personal : Estimated personal spending
+• PhD : Percent of faculty with Ph.D.’s
+• Terminal : Percent of faculty with terminal degree • S.F.Ratio : Student/faculty ratio
+• perc.alumni : Percent of alumni who donate
+• Expend : Instructional expenditure per student
+• Grad.Rate : Graduation rate
 
 ```{r setup, include=FALSE}
 
@@ -12,5 +32,32 @@ library(ISLR2)
 
 data(College)
 head(College)
+
+View(College)
+
+```
+
+```{r}
+
+# this is exercise 8 from the textbook that uses the same data set that our project does pg 54
+# running through it to help familiarize myself with our data set
+
+# part c
+
+summary(College)
+
+pairs(College[,1:10])
+ 
+
+```
+
+
+```{r}
+
+# part a of the project
+
+college_lm <- lm(Apps ~ ., data = College)
+
+summary(college_lm)
 
 ```
