@@ -46,4 +46,6 @@ college_lm <- lm(Apps ~ ., data = College)
 
 summary(college_lm)
 
+# checking git stuff
+
 ```
