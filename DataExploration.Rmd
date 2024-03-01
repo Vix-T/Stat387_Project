@@ -26,35 +26,21 @@ The College data set contains a number of variables for 777 different universiti
 • Grad.Rate : Graduation rate
 
 ```{r setup, include=FALSE}
-
+# load and examine the data set
 library(ISLR)
 library(ISLR2)
 
 data(College)
 head(College)
 
-View(College)
-
-```
-
-```{r}
-
-# this is exercise 8 from the textbook that uses the same data set that our project does pg 54
-# running through it to help familiarize myself with our data set
-
-# part c
-
-summary(College)
-
-pairs(College[,1:10])
- 
+# View(College)
 
 ```
 
 
-```{r}
 
-# part a of the project
+```{r}
+# part a of the project questions
 
 college_lm <- lm(Apps ~ ., data = College)
 
