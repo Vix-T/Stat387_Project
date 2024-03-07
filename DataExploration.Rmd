@@ -6,13 +6,15 @@ output: html_document
 ---
 Data Description:
 
-The College data set contains a number of variables for 777 different universities and colleges in the US. The variables are
+The College data set contains a number of variables for 777 different universities and colleges in the US. 
+The variables are:
 
 • Private : Public/private indicator
 • Apps : Number of applications received
 • Accept : Number of applicants accepted
 • Enroll : Number of new students enrolled
-• Top10perc : New students from top 10 % of high school class • Top25perc : New students from top 25 % of high school class 
+• Top10perc : New students from top 10 % of high school class 
+• Top25perc : New students from top 25 % of high school class 
 • F.Undergrad : Number of full-time undergraduates
 • P.Undergrad : Number of part-time undergraduates
 • Outstate : Out-of-state tuition
@@ -20,32 +22,85 @@ The College data set contains a number of variables for 777 different universiti
 • Books : Estimated book costs
 • Personal : Estimated personal spending
 • PhD : Percent of faculty with Ph.D.’s
-• Terminal : Percent of faculty with terminal degree • S.F.Ratio : Student/faculty ratio
+• Terminal : Percent of faculty with terminal degree 
+• S.F.Ratio : Student/faculty ratio
 • perc.alumni : Percent of alumni who donate
 • Expend : Instructional expenditure per student
 • Grad.Rate : Graduation rate
+
+We would like to predict the number of applications received using the other variables.
 
 ```{r setup, include=FALSE}
 # load and examine the data set
 library(ISLR)
 library(ISLR2)
+library(skimr)
 
 data(College)
 head(College)
+skim(College)
 
 # View(College)
+
+```
+
+```{r}
+
+set.seed(1234)
+train_indices <- sample(1:nrow(College), nrow(College) / 2)
+train <- College[train_indices, ]
+test <- College[-train_indices, ]
 
 ```
 
 
 
 ```{r}
-# part a of the project questions
+# fit a tree to the data and summarize the results.
+# this residual mean deviance seems really high
+library(tree)
 
-college_lm <- lm(Apps ~ ., data = College)
+college_tree <- tree(Apps ~ ., data = train)
+summary(college_tree)
 
-summary(college_lm)
+```
 
-# checking git stuff
+```{r}
+# display the tree graphically
+# I want to work on making this prettier for the pressentation
+plot(college_tree)
+text(college_tree)
+
+```
+
+```{r}
+# use LOOCV to determine whether pruning is helpful and determine the optimal size for the pruned tree.
+# I'm pretty sure that cv.tree funtion is using LOOCV but I can't find information to support that assumption
+tree_cv <- cv.tree(college_tree)
+names(tree_cv)
+tree_cv
+
+plot(tree_cv$size, tree_cv$dev, type = "b", xlab = "Tree Size", ylab = "Cross-Validation Errors")
+ 
+
+```
+
+```{r}
+# use LOOCV to determine whether pruning is helpful and determine the optimal size for the pruned tree
+# so far it doesn't look like pruning is helpful
+pruned_college <- prune.tree(college_tree, best = 9)
+plot(pruned_college)
+text(pruned_college, pretty = 0)
+ 
+
+```
+
+```{r}
+# compare the pruned and un-pruned trees. Report MSE for the pruned tree. Which predictors seem to be the most important?
+# there's a problem with yhat, I've been struggling with the predict function this whole class I just need to beat my head against it a little more
+yhat <- predict(college_tree, test)
+plot(yhat, test)
+abline(0, 1)
+mean((yhat - test)^2)
 
 ```
