@@ -40,7 +40,10 @@ library(ggplot2)
 data(College)
 head(College)
 skim(College)
-
+# double check that our data seems to be clean
+missing_values <- is.na(College)
+missing_counts <- colSums(missing_values)
+print(missing_counts)
 # View(College)
 
 ```
