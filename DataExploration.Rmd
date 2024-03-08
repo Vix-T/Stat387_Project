@@ -35,6 +35,7 @@ We would like to predict the number of applications received using the other var
 library(ISLR)
 library(ISLR2)
 library(skimr)
+library(ggplot2)
 
 data(College)
 head(College)
@@ -65,11 +66,24 @@ summary(college_tree)
 
 ```
 
+
 ```{r}
 # display the tree graphically
-# I want to work on making this prettier for the pressentation
+# I want to work on making this prettier for the presentation
 plot(college_tree)
 text(college_tree)
+
+# compare the pruned and un-pruned trees.
+unpruned_yhat <- predict(college_tree, newdata= test)
+unpruned_data <- data.frame(unpruned_yhat, test$Apps)
+ggplot(unpruned_data, aes(x = unpruned_yhat, y = test.Apps)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "salmon") +
+  labs(x = "Y-hat value for unpruned tree", y = "Cross-Validation Errors") +
+  theme_minimal()
+# MSE for unpruned tree
+unpruned_MSE <- mean((unpruned_yhat - test$Apps)^2)
+unpruned_MSE
 
 ```
 
@@ -80,27 +94,149 @@ tree_cv <- cv.tree(college_tree)
 names(tree_cv)
 tree_cv
 
-plot(tree_cv$size, tree_cv$dev, type = "b", xlab = "Tree Size", ylab = "Cross-Validation Errors")
- 
+tree_data <- data.frame(Tree_Size = tree_cv$size, Cross_Validation_Errors = tree_cv$dev)
 
+# pretty graphs for presentation
+ggplot(tree_data, aes(x = Tree_Size, y = Cross_Validation_Errors)) +
+  geom_point(color = "springgreen4", size = 3) +  # Customize points
+  geom_line(color = "orange") +  # Add a line connecting points
+  labs(x = "Tree Size", y = "Cross-Validation Errors") +  # Customize axis labels
+  theme_minimal()  # Apply a minimal theme for a clean appearance
+ 
 ```
 
 ```{r}
-# use LOOCV to determine whether pruning is helpful and determine the optimal size for the pruned tree
-# so far it doesn't look like pruning is helpful
+# compare the pruned and un-pruned trees. Report MSE for the pruned tree. Which predictors seem to be the most important?
 pruned_college <- prune.tree(college_tree, best = 9)
 plot(pruned_college)
 text(pruned_college, pretty = 0)
- 
+
+summary(pruned_college)
 
 ```
 
 ```{r}
 # compare the pruned and un-pruned trees. Report MSE for the pruned tree. Which predictors seem to be the most important?
-# there's a problem with yhat, I've been struggling with the predict function this whole class I just need to beat my head against it a little more
-yhat <- predict(college_tree, test)
-plot(yhat, test)
-abline(0, 1)
-mean((yhat - test)^2)
+pruned_yhat <- predict(pruned_college, newdata= test)
+
+# putting some ggplot2 graphs in to start using for our presentation
+pruned_data <- data.frame(pruned_yhat, test$Apps)
+ggplot(pruned_data, aes(x = pruned_yhat, y = test.Apps)) +
+  geom_point(color = "purple") +
+  geom_smooth(method = "lm", se = FALSE, color = "cyan") +
+  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
+  theme_minimal()
+# MSE for pruned tree
+pruned_MSE <- mean((pruned_yhat - test$Apps)^2)
+pruned_MSE
+ 
+```
+> So far the MSE is identical for the pruned and unpruned trees because we weren't able to get a better fit through the pruning process. The predictors that appear to be important are Accept and Top10Percent.
+
+```{r}
+# use a bagging approach to analyze the data with B = 500 Compute the MSE. Which predictors seem to be the most important?
+
+# bagging is just a randomforest where m = p, mtry = 18 so we use all 17 predictors (17 because we have 18 columns but Apps is our response variable)
+library(randomForest)
+
+set.seed(5678)
+bag500_college <- randomForest(Apps ~ ., data = train, mtry = 17, ntree = 500)
+
+summary(bag500_college)
+
+bag500_yhat <- predict(bag500_college, newdata=test)
+
+# putting some ggplot2 graphs in to start using for our presentation
+bagged500_data <- data.frame(bag500_yhat, test$Apps)
+ggplot(bagged500_data, aes(x = bag500_yhat, y = test.Apps)) +
+  geom_point(color = "magenta") +
+  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
+  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
+  theme_minimal()
+# MSE for pruned tree
+bagged500_MSE <- mean((bag500_yhat - test$Apps)^2)
+bagged500_MSE
 
 ```
+
+```{r}
+# use a bagging approach to analyze the data with B = 1000
+set.seed(2468)
+bag1000_college <- randomForest(Apps ~ ., data = train, mtry = 17, ntree = 1000)
+
+summary(bag1000_college)
+
+bag1000_yhat <- predict(bag1000_college, newdata=test)
+
+# putting some ggplot2 graphs in to start using for our presentation
+bagged1000_data <- data.frame(bag1000_yhat, test$Apps)
+ggplot(bagged1000_data, aes(x = bag1000_yhat, y = test.Apps)) +
+  geom_point(color = "magenta") +
+  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
+  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
+  theme_minimal()
+# MSE for pruned tree
+bagged1000_MSE <- mean((bag1000_yhat - test$Apps)^2)
+bagged1000_MSE
+
+```
+
+```{r}
+# use a random forest approach to analyze the data with B = 500
+set.seed(1357)
+rf500_college <- randomForest(Apps ~ ., data = train, mtry = 3, ntree = 500)
+
+summary(rf500_college)
+
+rf500_yhat <- predict(rf500_college, newdata=test)
+
+# putting some ggplot2 graphs in to start using for our presentation
+rf500_data <- data.frame(rf500_yhat, test$Apps)
+ggplot(rf500_data, aes(x = rf500_yhat, y = test.Apps)) +
+  geom_point(color = "magenta") +
+  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
+  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
+  theme_minimal()
+# MSE for pruned tree
+rf500_MSE <- mean((rf500_yhat - test$Apps)^2)
+rf500_MSE
+
+```
+```{r}
+# use a random forest approach to analyze the data with B = 1000
+set.seed(1278)
+rf1000_college <- randomForest(Apps ~ ., data = train, mtry = 3, ntree = 1000)
+
+summary(rf1000_college)
+
+rf1000_yhat <- predict(rf1000_college, newdata=test)
+
+# putting some ggplot2 graphs in to start using for our presentation
+rf1000_data <- data.frame(rf1000_yhat, test$Apps)
+ggplot(rf1000_data, aes(x = rf1000_yhat, y = test.Apps)) +
+  geom_point(color = "magenta") +
+  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
+  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
+  theme_minimal()
+# MSE for pruned tree
+rf1000_MSE <- mean((rf1000_yhat - test$Apps)^2)
+rf1000_MSE
+
+```
+
+```{r}
+# compare the results from the various methods. Which method would you recommend?
+MSE_vector <- c(unpruned_MSE, pruned_MSE, bagged500_MSE, bagged1000_MSE, rf500_MSE, rf1000_MSE)
+y_values <- seq(0, 20000, length.out = length(MSE_vector))
+df <- data.frame(Method = c("unpruned", "pruned", "bagged500", "bagged1000", "rf500", "rf1000"),
+                 MSE = MSE_vector)
+
+# comparison of MSE value for various methods
+ggplot(df, aes(x = Method, y = MSE, label = Method)) +
+  geom_point(color = "blueviolet", size = 3) +
+  geom_text(vjust = -0.5, size = 3) +  
+  labs(x = "Methods", y = "MSE", title = "MSE Comparison") +
+  theme_minimal()
+
+```
+> It appears that the Bagged model with B = 500 yields the lowest MSE for our data.
