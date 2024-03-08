@@ -154,9 +154,9 @@ bagged500_data <- data.frame(bag500_yhat, test$Apps)
 ggplot(bagged500_data, aes(x = bag500_yhat, y = test.Apps)) +
   geom_point(color = "magenta") +
   geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
-  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
+  labs(x = "Y-hat for B = 500", y = "Cross-Validation Errors") +
   theme_minimal()
-# MSE for pruned tree
+# MSE for B = 500 bagged tree
 bagged500_MSE <- mean((bag500_yhat - test$Apps)^2)
 bagged500_MSE
 
@@ -176,9 +176,9 @@ bagged1000_data <- data.frame(bag1000_yhat, test$Apps)
 ggplot(bagged1000_data, aes(x = bag1000_yhat, y = test.Apps)) +
   geom_point(color = "magenta") +
   geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
-  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
+  labs(x = "Y-hat for B = 1000", y = "Cross-Validation Errors") +
   theme_minimal()
-# MSE for pruned tree
+# MSE for B = 1000 bagged
 bagged1000_MSE <- mean((bag1000_yhat - test$Apps)^2)
 bagged1000_MSE
 
@@ -198,9 +198,9 @@ rf500_data <- data.frame(rf500_yhat, test$Apps)
 ggplot(rf500_data, aes(x = rf500_yhat, y = test.Apps)) +
   geom_point(color = "magenta") +
   geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
-  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
+  labs(x = "Y-hat for Random Forest B = 500", y = "Cross-Validation Errors") +
   theme_minimal()
-# MSE for pruned tree
+# MSE for Random Forest B = 500
 rf500_MSE <- mean((rf500_yhat - test$Apps)^2)
 rf500_MSE
 
@@ -219,11 +219,17 @@ rf1000_data <- data.frame(rf1000_yhat, test$Apps)
 ggplot(rf1000_data, aes(x = rf1000_yhat, y = test.Apps)) +
   geom_point(color = "magenta") +
   geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
-  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
+  labs(x = "Y-hat for Random Forest B = 1000", y = "Cross-Validation Errors") +
   theme_minimal()
-# MSE for pruned tree
+# MSE for Random Forest B = 1000
 rf1000_MSE <- mean((rf1000_yhat - test$Apps)^2)
 rf1000_MSE
+
+```
+
+```{r}
+
+# boosting here
 
 ```
 
