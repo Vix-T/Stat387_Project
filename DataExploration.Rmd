@@ -230,14 +230,36 @@ rf1000_MSE
 ```{r}
 
 # boosting here
+library(gbm)
+set.seed(1)
+boost_college <- gbm(Apps ~ ., data = train,
+distribution = "gaussian", n.trees = 50, interaction.depth = 4)
+
+summary(boost_college)
+
+```
+```{r}
+
+boost_yhat <- predict(boost_college, newdata=test)
+
+# putting some ggplot2 graphs in to start using for our presentation
+boost_data <- data.frame(boost_yhat, test$Apps)
+ggplot(boost_data, aes(x = boost_yhat, y = test.Apps)) +
+  geom_point(color = "magenta") +
+  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
+  labs(x = "Y-hat for Boosting # Trees = 50", y = "Cross-Validation Errors") +
+  theme_minimal()
+# MSE for Boosting with 50 trees
+boost_MSE <- mean((boost_yhat - test$Apps)^2)
+boost_MSE
 
 ```
 
 ```{r}
 # compare the results from the various methods. Which method would you recommend?
-MSE_vector <- c(unpruned_MSE, pruned_MSE, bagged500_MSE, bagged1000_MSE, rf500_MSE, rf1000_MSE)
+MSE_vector <- c(unpruned_MSE, pruned_MSE, bagged500_MSE, bagged1000_MSE, rf500_MSE, rf1000_MSE, boost_MSE)
 y_values <- seq(0, 20000, length.out = length(MSE_vector))
-df <- data.frame(Method = c("unpruned", "pruned", "bagged500", "bagged1000", "rf500", "rf1000"),
+df <- data.frame(Method = c("unpruned", "pruned", "bagged500", "bagged1000", "rf500", "rf1000", "boost"),
                  MSE = MSE_vector)
 
 # comparison of MSE value for various methods
