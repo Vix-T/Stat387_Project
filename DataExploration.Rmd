@@ -45,7 +45,8 @@ missing_values <- is.na(College)
 missing_counts <- colSums(missing_values)
 print(missing_counts)
 # View(College)
-
+total_apps <- sum(College$Apps)
+total_apps
 ```
 
 ```{r}
@@ -92,7 +93,7 @@ unpruned_MSE
 
 ```{r}
 # use LOOCV to determine whether pruning is helpful and determine the optimal size for the pruned tree.
-# I'm pretty sure that cv.tree funtion is using LOOCV but I can't find information to support that assumption
+# I'm pretty sure that cv.tree fucntion is using LOOCV but I can't find information to support that assumption
 tree_cv <- cv.tree(college_tree)
 names(tree_cv)
 tree_cv
