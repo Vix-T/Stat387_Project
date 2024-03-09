@@ -36,6 +36,10 @@ library(ISLR)
 library(ISLR2)
 library(skimr)
 library(ggplot2)
+library(ISLR)
+library(boot)
+library(tree)
+library(caret)
 
 data(College)
 head(College)
@@ -48,6 +52,32 @@ print(missing_counts)
 total_apps <- sum(College$Apps)
 total_apps
 ```
+
+
+# Creating the training and test set
+```{r, echo = FALSE}
+set.seed(1)
+
+#Randomly assigns true or false to each row in the college data set, if true row goes into the train data set, otherwise in the test data set
+train = sample(c(TRUE, FALSE), nrow(College), rep = TRUE)
+test = (!train)
+
+h.train.college = College[train,]
+h.test.college = College[test,]
+```
+
+
+```{r, echo = FALSE}
+
+h.lm.college = lm(Apps~., data = h.train.college)
+h.lm.loocv = cv.glm(h.train.college, h.lm.college)$delta[1]
+
+h.yhat = predict(h.lm.college, newdata = h.test.college)
+h.predict.mse = mean((h.yhat - h.test.college$Apps)^2)
+
+print(paste("LOOCV esimate of the test error for linear regression is", predict.mse))
+```
+
 
 ```{r}
 
@@ -74,7 +104,7 @@ summary(college_tree)
 ```{r}
 # display the tree graphically
 # I want to work on making this prettier for the presentation
-plot(college_tree)
+plot(college_tree, type = "uniform")
 text(college_tree)
 
 # compare the pruned and un-pruned trees.
@@ -112,7 +142,7 @@ ggplot(tree_data, aes(x = Tree_Size, y = Cross_Validation_Errors)) +
 ```{r}
 # compare the pruned and un-pruned trees. Report MSE for the pruned tree. Which predictors seem to be the most important?
 pruned_college <- prune.tree(college_tree, best = 9)
-plot(pruned_college)
+plot(pruned_college, type = "uniform")
 text(pruned_college, pretty = 0)
 
 summary(pruned_college)
