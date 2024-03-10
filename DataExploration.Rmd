@@ -62,6 +62,7 @@ summary(college_lm)
 
 # remove P. under, books, personal, terminal, s.f. ratio, perc. alumni
 College <- College[-c(8,11,12,14,15,16)]
+View(College)
 
 ```
 ```{r}
@@ -271,7 +272,7 @@ print(paste("The MSE for a random forest appraoch with # trees = 1000 is", rf100
 # boosting  model
 library(gbm)
 boost_college <- gbm(Apps ~ ., data = train,
-distribution = "gaussian", n.trees = 50, interaction.depth = 4)
+distribution = "gaussian", n.trees = 50, interaction.depth =7)
 
 summary(boost_college)
 
@@ -292,12 +293,37 @@ boost_MSE <- mean((boost_yhat - test$Apps)^2)
 print(paste("The MSE for a boosting model with 50 trees is", boost_MSE))
 
 ```
+```{r}
+library(BART)
+x <- College[, -c(2)]
+y <- College[, "Apps"]
+xtrain <- x[train_indices, ]
+ytrain <- y[train_indices]
+xtest <- x[-train_indices, ]
+ytest <- y[-train_indices]
+bartfit <- gbart(xtrain, ytrain, x.test = xtest)
+yhat.bart <- bartfit$yhat.test.mean 
+bartMSE <- mean((ytest - yhat.bart)^2)
+print(paste("The MSE for a BART model is", bartMSE))
+
+```
+
+```{r}
+
+bart_data <- data.frame(yhat.bart, test$Apps)
+ggplot(bart_data, aes(x = yhat.bart, y = test.Apps)) +
+  geom_point(color = "magenta") +
+  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
+  labs(x = "Y-hat for BART", y = "Cross-Validation Errors") +
+  theme_minimal()
+
+```
 
 ```{r}
 # compare the results from the various methods. Which method would you recommend?
-MSE_vector <- c(unpruned_MSE, pruned_MSE, bagged500_MSE, bagged1000_MSE, rf500_MSE, rf1000_MSE, boost_MSE, h.predict.mse)
+MSE_vector <- c(unpruned_MSE, pruned_MSE, bagged500_MSE, bagged1000_MSE, rf500_MSE, rf1000_MSE, boost_MSE, h.predict.mse, bartMSE)
 y_values <- seq(0, 20000, length.out = length(MSE_vector))
-df <- data.frame(Method = c("Unpruned", "Pruned", "bagged500", "bagged1000", "RF500", "RF1000", "Boost", "Linear Model"),
+df <- data.frame(Method = c("Unpruned", "Pruned", "bagged500", "bagged1000", "RF500", "RF1000", "Boost", "Linear Model", "BART"),
                  MSE = MSE_vector)
 
 # comparison of MSE value for various methods
@@ -313,9 +339,9 @@ ggplot(df, aes(x = Method, y = MSE, label = Method)) +
 ```{r}
 
 # compare our actual error rates
-error_vector <- c(sqrt(unpruned_MSE), sqrt(pruned_MSE), sqrt(bagged500_MSE), sqrt(bagged1000_MSE), sqrt(rf500_MSE), sqrt(rf1000_MSE), sqrt(boost_MSE), sqrt(h.predict.mse))
+error_vector <- c(sqrt(unpruned_MSE), sqrt(pruned_MSE), sqrt(bagged500_MSE), sqrt(bagged1000_MSE), sqrt(rf500_MSE), sqrt(rf1000_MSE), sqrt(boost_MSE), sqrt(h.predict.mse), sqrt(bartMSE))
 error_values <- seq(0, 20000, length.out = length(error_vector))
-df <- data.frame(Method = c("Unpruned", "Pruned", "bagged500", "bagged1000", "RF500", "RF1000", "Boost", "Linear Model"),
+df <- data.frame(Method = c("Unpruned", "Pruned", "bagged500", "bagged1000", "RF500", "RF1000", "Boost", "Linear Model", "BART"),
                  model_error = error_vector)
 
 # comparison of MSE value for various methods
