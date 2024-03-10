@@ -40,24 +40,40 @@ library(ISLR)
 library(boot)
 library(tree)
 library(caret)
+set.seed(1)
 
 data(College)
 head(College)
 skim(College)
+
 # double check that our data seems to be clean
 missing_values <- is.na(College)
 missing_counts <- colSums(missing_values)
 print(missing_counts)
+
 # View(College)
-total_apps <- sum(College$Apps)
-total_apps
+
+```
+
+```{r}
+# check for which predictors are most important so we can remove unnecessary columns
+college_lm <- lm(Apps ~ ., data=College)
+summary(college_lm)
+
+# remove P. under, books, personal, terminal, s.f. ratio, perc. alumni
+College <- College[-c(8,11,12,14,15,16)]
+
+```
+```{r}
+# confirm that R-squared is still good
+reduced_lm <- lm(Apps ~ ., data=College)
+summary(reduced_lm)
+
 ```
 
 
 # Creating the training and test set
 ```{r, echo = FALSE}
-set.seed(1)
-
 #Randomly assigns true or false to each row in the college data set, if true row goes into the train data set, otherwise in the test data set
 train = sample(c(TRUE, FALSE), nrow(College), rep = TRUE)
 test = (!train)
@@ -75,14 +91,13 @@ h.lm.loocv = cv.glm(h.train.college, h.lm.college)$delta[1]
 h.yhat = predict(h.lm.college, newdata = h.test.college)
 h.predict.mse = mean((h.yhat - h.test.college$Apps)^2)
 
-print(paste("LOOCV esimate of the test error for linear regression is", predict.mse))
+print(paste("LOOCV estimate of the test error for linear regression is", h.predict.mse))
 ```
 
 
 ```{r}
-
-set.seed(1234)
-train_indices <- sample(1:nrow(College), nrow(College) / 2)
+# create a 70/30 split to the data
+train_indices <- sample(1:nrow(College), (nrow(College) * .7))
 train <- College[train_indices, ]
 test <- College[-train_indices, ]
 
@@ -103,11 +118,10 @@ summary(college_tree)
 
 ```{r}
 # display the tree graphically
-# I want to work on making this prettier for the presentation
 plot(college_tree, type = "uniform")
 text(college_tree)
 
-# compare the pruned and un-pruned trees.
+# compute yhat values and graph
 unpruned_yhat <- predict(college_tree, newdata= test)
 unpruned_data <- data.frame(unpruned_yhat, test$Apps)
 ggplot(unpruned_data, aes(x = unpruned_yhat, y = test.Apps)) +
@@ -117,13 +131,12 @@ ggplot(unpruned_data, aes(x = unpruned_yhat, y = test.Apps)) +
   theme_minimal()
 # MSE for unpruned tree
 unpruned_MSE <- mean((unpruned_yhat - test$Apps)^2)
-unpruned_MSE
+print(paste("The MSE for an unpruned decision tree is", unpruned_MSE))
 
 ```
 
 ```{r}
 # use LOOCV to determine whether pruning is helpful and determine the optimal size for the pruned tree.
-# I'm pretty sure that cv.tree fucntion is using LOOCV but I can't find information to support that assumption
 tree_cv <- cv.tree(college_tree)
 names(tree_cv)
 tree_cv
@@ -141,7 +154,7 @@ ggplot(tree_data, aes(x = Tree_Size, y = Cross_Validation_Errors)) +
 
 ```{r}
 # compare the pruned and un-pruned trees. Report MSE for the pruned tree. Which predictors seem to be the most important?
-pruned_college <- prune.tree(college_tree, best = 9)
+pruned_college <- prune.tree(college_tree, best =8)
 plot(pruned_college, type = "uniform")
 text(pruned_college, pretty = 0)
 
@@ -162,7 +175,7 @@ ggplot(pruned_data, aes(x = pruned_yhat, y = test.Apps)) +
   theme_minimal()
 # MSE for pruned tree
 pruned_MSE <- mean((pruned_yhat - test$Apps)^2)
-pruned_MSE
+print(paste("The MSE for the pruned decision tree is", pruned_MSE))
  
 ```
 > So far the MSE is identical for the pruned and unpruned trees because we weren't able to get a better fit through the pruning process. The predictors that appear to be important are Accept and Top10Percent.
@@ -170,11 +183,9 @@ pruned_MSE
 ```{r}
 # use a bagging approach to analyze the data with B = 500 Compute the MSE. Which predictors seem to be the most important?
 
-# bagging is just a randomforest where m = p, mtry = 18 so we use all 17 predictors (17 because we have 18 columns but Apps is our response variable)
+# bagging is just a randomforest where m = p, mtry = 11 so we use 11 predictors
 library(randomForest)
-
-set.seed(5678)
-bag500_college <- randomForest(Apps ~ ., data = train, mtry = 17, ntree = 500)
+bag500_college <- randomForest(Apps ~ ., data = train, mtry = 11, ntree = 500)
 
 summary(bag500_college)
 
@@ -189,14 +200,13 @@ ggplot(bagged500_data, aes(x = bag500_yhat, y = test.Apps)) +
   theme_minimal()
 # MSE for B = 500 bagged tree
 bagged500_MSE <- mean((bag500_yhat - test$Apps)^2)
-bagged500_MSE
+print(paste("The MSE for a bagged decision tree where B = 500 is", bagged500_MSE))
 
 ```
 
 ```{r}
 # use a bagging approach to analyze the data with B = 1000
-set.seed(2468)
-bag1000_college <- randomForest(Apps ~ ., data = train, mtry = 17, ntree = 1000)
+bag1000_college <- randomForest(Apps ~ ., data = train, mtry = 11, ntree = 1000)
 
 summary(bag1000_college)
 
@@ -211,13 +221,12 @@ ggplot(bagged1000_data, aes(x = bag1000_yhat, y = test.Apps)) +
   theme_minimal()
 # MSE for B = 1000 bagged
 bagged1000_MSE <- mean((bag1000_yhat - test$Apps)^2)
-bagged1000_MSE
+print(paste("The MSE for a bagged decision tree where B = 1000 is", bagged1000_MSE))
 
 ```
 
 ```{r}
 # use a random forest approach to analyze the data with B = 500
-set.seed(1357)
 rf500_college <- randomForest(Apps ~ ., data = train, mtry = 3, ntree = 500)
 
 summary(rf500_college)
@@ -233,12 +242,11 @@ ggplot(rf500_data, aes(x = rf500_yhat, y = test.Apps)) +
   theme_minimal()
 # MSE for Random Forest B = 500
 rf500_MSE <- mean((rf500_yhat - test$Apps)^2)
-rf500_MSE
+print(paste("The MSE for a random forest appraoch with # trees = 500 is", rf500_MSE))
 
 ```
 ```{r}
 # use a random forest approach to analyze the data with B = 1000
-set.seed(1278)
 rf1000_college <- randomForest(Apps ~ ., data = train, mtry = 3, ntree = 1000)
 
 summary(rf1000_college)
@@ -254,15 +262,14 @@ ggplot(rf1000_data, aes(x = rf1000_yhat, y = test.Apps)) +
   theme_minimal()
 # MSE for Random Forest B = 1000
 rf1000_MSE <- mean((rf1000_yhat - test$Apps)^2)
-rf1000_MSE
+print(paste("The MSE for a random forest appraoch with # trees = 1000 is", rf1000_MSE))
 
 ```
 
 ```{r}
 
-# boosting here
+# boosting  model
 library(gbm)
-set.seed(1)
 boost_college <- gbm(Apps ~ ., data = train,
 distribution = "gaussian", n.trees = 50, interaction.depth = 4)
 
@@ -282,15 +289,15 @@ ggplot(boost_data, aes(x = boost_yhat, y = test.Apps)) +
   theme_minimal()
 # MSE for Boosting with 50 trees
 boost_MSE <- mean((boost_yhat - test$Apps)^2)
-boost_MSE
+print(paste("The MSE for a boosting model with 50 trees is", boost_MSE))
 
 ```
 
 ```{r}
 # compare the results from the various methods. Which method would you recommend?
-MSE_vector <- c(unpruned_MSE, pruned_MSE, bagged500_MSE, bagged1000_MSE, rf500_MSE, rf1000_MSE, boost_MSE)
+MSE_vector <- c(unpruned_MSE, pruned_MSE, bagged500_MSE, bagged1000_MSE, rf500_MSE, rf1000_MSE, boost_MSE, h.predict.mse)
 y_values <- seq(0, 20000, length.out = length(MSE_vector))
-df <- data.frame(Method = c("unpruned", "pruned", "bagged500", "bagged1000", "rf500", "rf1000", "boost"),
+df <- data.frame(Method = c("Unpruned", "Pruned", "bagged500", "bagged1000", "RF500", "RF1000", "Boost", "Linear Model"),
                  MSE = MSE_vector)
 
 # comparison of MSE value for various methods
@@ -302,3 +309,20 @@ ggplot(df, aes(x = Method, y = MSE, label = Method)) +
 
 ```
 > It appears that the Bagged model with B = 500 yields the lowest MSE for our data.
+
+```{r}
+
+# compare our actual error rates
+error_vector <- c(sqrt(unpruned_MSE), sqrt(pruned_MSE), sqrt(bagged500_MSE), sqrt(bagged1000_MSE), sqrt(rf500_MSE), sqrt(rf1000_MSE), sqrt(boost_MSE), sqrt(h.predict.mse))
+error_values <- seq(0, 20000, length.out = length(error_vector))
+df <- data.frame(Method = c("Unpruned", "Pruned", "bagged500", "bagged1000", "RF500", "RF1000", "Boost", "Linear Model"),
+                 model_error = error_vector)
+
+# comparison of MSE value for various methods
+ggplot(df, aes(x = Method, y = model_error, label = Method)) +
+  geom_point(color = "forestgreen", size = 3) +
+  geom_text(vjust = -0.5, size = 3) +  
+  labs(x = "Methods", y = "Model Error", title = "Model Comparion") +
+  theme_minimal()
+
+```
