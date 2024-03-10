@@ -101,19 +101,16 @@ print(paste("LOOCV estimate of the test error for linear regression is", h.predi
 train_indices <- sample(1:nrow(College), (nrow(College) * .7))
 train <- College[train_indices, ]
 test <- College[-train_indices, ]
-
 ```
 
 
 
 ```{r}
 # fit a tree to the data and summarize the results.
-# this residual mean deviance seems really high
 library(tree)
 
 college_tree <- tree(Apps ~ ., data = train)
 summary(college_tree)
-
 ```
 
 
@@ -150,7 +147,6 @@ ggplot(tree_data, aes(x = Tree_Size, y = Cross_Validation_Errors)) +
   geom_line(color = "orange") +  # Add a line connecting points
   labs(x = "Tree Size", y = "Cross-Validation Errors") +  # Customize axis labels
   theme_minimal()  # Apply a minimal theme for a clean appearance
- 
 ```
 
 ```{r}
@@ -160,7 +156,6 @@ plot(pruned_college, type = "uniform")
 text(pruned_college, pretty = 0)
 
 summary(pruned_college)
-
 ```
 
 ```{r}
@@ -206,6 +201,21 @@ print(paste("The MSE for a bagged decision tree where B = 500 is", bagged500_MSE
 ```
 
 ```{r}
+# plot showing fit for bagged 500 model
+
+predictions <- predict(bag500_college, newdata =test)
+plot_data <- data.frame(Actual = test$Apps, Predicted = predictions)
+
+ggplot(plot_data, aes(x = Actual, y = Predicted)) +
+  geom_point(color = "black") +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
+  labs(x = "Actual Applications", y = "Predicted Applications") +
+  ggtitle("Actual vs. Predicted Applications (Bagged Tree Model B = 500)") +
+  theme_minimal()
+
+```
+
+```{r}
 # use a bagging approach to analyze the data with B = 1000
 bag1000_college <- randomForest(Apps ~ ., data = train, mtry = 11, ntree = 1000)
 
@@ -223,6 +233,22 @@ ggplot(bagged1000_data, aes(x = bag1000_yhat, y = test.Apps)) +
 # MSE for B = 1000 bagged
 bagged1000_MSE <- mean((bag1000_yhat - test$Apps)^2)
 print(paste("The MSE for a bagged decision tree where B = 1000 is", bagged1000_MSE))
+
+```
+
+
+```{r}
+# plot showing fit for bagged 500 model
+
+predictions <- predict(bag1000_college, newdata =test)
+plot_data <- data.frame(Actual = test$Apps, Predicted = predictions)
+
+ggplot(plot_data, aes(x = Actual, y = Predicted)) +
+  geom_point(color = "black") +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
+  labs(x = "Actual Applications", y = "Predicted Applications") +
+  ggtitle("Actual vs. Predicted Applications (Bagged Tree Model B = 1000)") +
+  theme_minimal()
 
 ```
 
@@ -246,6 +272,23 @@ rf500_MSE <- mean((rf500_yhat - test$Apps)^2)
 print(paste("The MSE for a random forest appraoch with # trees = 500 is", rf500_MSE))
 
 ```
+
+
+```{r}
+# plot showing fit for bagged 500 model
+
+predictions <- predict(rf500_college, newdata =train)
+plot_data <- data.frame(Actual = train$Apps, Predicted = predictions)
+
+ggplot(plot_data, aes(x = Actual, y = Predicted)) +
+  geom_point(color = "black") +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
+  labs(x = "Actual Applications", y = "Predicted Applications") +
+  ggtitle("Actual vs. Predicted Applications (Random Forest Tree Model B = 500)") +
+  theme_minimal()
+
+```
+
 ```{r}
 # use a random forest approach to analyze the data with B = 1000
 rf1000_college <- randomForest(Apps ~ ., data = train, mtry = 3, ntree = 1000)
@@ -264,6 +307,22 @@ ggplot(rf1000_data, aes(x = rf1000_yhat, y = test.Apps)) +
 # MSE for Random Forest B = 1000
 rf1000_MSE <- mean((rf1000_yhat - test$Apps)^2)
 print(paste("The MSE for a random forest appraoch with # trees = 1000 is", rf1000_MSE))
+
+```
+
+
+```{r}
+# plot showing fit for random forest 1000 model
+
+predictions <- predict(rf1000_college, newdata =test)
+plot_data <- data.frame(Actual = test$Apps, Predicted = predictions)
+
+ggplot(plot_data, aes(x = Actual, y = Predicted)) +
+  geom_point(color = "blue") +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
+  labs(x = "Actual Applications", y = "Predicted Applications") +
+  ggtitle("Actual vs. Predicted Applications (Random Forest Tree Model B = 1000)") +
+  theme_minimal()
 
 ```
 
@@ -293,6 +352,23 @@ boost_MSE <- mean((boost_yhat - test$Apps)^2)
 print(paste("The MSE for a boosting model with 50 trees is", boost_MSE))
 
 ```
+
+
+```{r}
+# plot showing fit for boost model
+
+predictions <- predict(boost_college, newdata =test)
+plot_data <- data.frame(Actual = test$Apps, Predicted = predictions)
+
+ggplot(plot_data, aes(x = Actual, y = Predicted)) +
+  geom_point(color = "cyan3") +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
+  labs(x = "Actual Applications", y = "Predicted Applications") +
+  ggtitle("Actual vs. Predicted Applications (Boosting Model)") +
+  theme_minimal()
+
+```
+
 ```{r}
 library(BART)
 x <- College[, -c(2)]
@@ -318,6 +394,7 @@ ggplot(bart_data, aes(x = yhat.bart, y = test.Apps)) +
   theme_minimal()
 
 ```
+
 
 ```{r}
 # compare the results from the various methods. Which method would you recommend?
@@ -350,5 +427,11 @@ ggplot(df, aes(x = Method, y = model_error, label = Method)) +
   geom_text(vjust = -0.5, size = 3) +  
   labs(x = "Methods", y = "Model Error", title = "Model Comparion") +
   theme_minimal()
+
+
+names <- c("Unpruned", "Pruned", "bagged500", "bagged1000", "RF500", "RF1000", "Boost", "Linear Model", "BART")
+results <- paste(names, "MSE:", round(MSE_vector, 2), ", Error Rate:", round(error_vector, 2))
+
+print(results)
 
 ```
