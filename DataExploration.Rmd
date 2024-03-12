@@ -53,6 +53,8 @@ print(missing_counts)
 
 # View(College)
 
+range(College$Apps)
+
 ```
 
 ```{r}
@@ -66,6 +68,7 @@ View(College)
 
 ```
 ```{r}
+
 # confirm that R-squared is still good
 reduced_lm <- lm(Apps ~ ., data=College)
 summary(reduced_lm)
@@ -121,13 +124,7 @@ text(college_tree)
 
 # compute yhat values and graph
 unpruned_yhat <- predict(college_tree, newdata= test)
-unpruned_data <- data.frame(unpruned_yhat, test$Apps)
-ggplot(unpruned_data, aes(x = unpruned_yhat, y = test.Apps)) +
-  geom_point(color = "blue") +
-  geom_smooth(method = "lm", se = FALSE, color = "salmon") +
-  labs(x = "Y-hat value for unpruned tree", y = "Cross-Validation Errors") +
-  theme_minimal()
-# MSE for unpruned tree
+
 unpruned_MSE <- mean((unpruned_yhat - test$Apps)^2)
 print(paste("The MSE for an unpruned decision tree is", unpruned_MSE))
 
@@ -162,13 +159,7 @@ summary(pruned_college)
 # compare the pruned and un-pruned trees. Report MSE for the pruned tree. Which predictors seem to be the most important?
 pruned_yhat <- predict(pruned_college, newdata= test)
 
-# putting some ggplot2 graphs in to start using for our presentation
-pruned_data <- data.frame(pruned_yhat, test$Apps)
-ggplot(pruned_data, aes(x = pruned_yhat, y = test.Apps)) +
-  geom_point(color = "purple") +
-  geom_smooth(method = "lm", se = FALSE, color = "cyan") +
-  labs(x = "Y-hat value for pruned tree", y = "Cross-Validation Errors") +
-  theme_minimal()
+
 # MSE for pruned tree
 pruned_MSE <- mean((pruned_yhat - test$Apps)^2)
 print(paste("The MSE for the pruned decision tree is", pruned_MSE))
@@ -187,33 +178,12 @@ summary(bag500_college)
 
 bag500_yhat <- predict(bag500_college, newdata=test)
 
-# putting some ggplot2 graphs in to start using for our presentation
-bagged500_data <- data.frame(bag500_yhat, test$Apps)
-ggplot(bagged500_data, aes(x = bag500_yhat, y = test.Apps)) +
-  geom_point(color = "magenta") +
-  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
-  labs(x = "Y-hat for B = 500", y = "Cross-Validation Errors") +
-  theme_minimal()
 # MSE for B = 500 bagged tree
 bagged500_MSE <- mean((bag500_yhat - test$Apps)^2)
 print(paste("The MSE for a bagged decision tree where B = 500 is", bagged500_MSE))
 
 ```
 
-```{r}
-# plot showing fit for bagged 500 model
-
-predictions <- predict(bag500_college, newdata =test)
-plot_data <- data.frame(Actual = test$Apps, Predicted = predictions)
-
-ggplot(plot_data, aes(x = Actual, y = Predicted)) +
-  geom_point(color = "black") +
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
-  labs(x = "Actual Applications", y = "Predicted Applications") +
-  ggtitle("Actual vs. Predicted Applications (Bagged Tree Model B = 500)") +
-  theme_minimal()
-
-```
 
 ```{r}
 # use a bagging approach to analyze the data with B = 1000
@@ -237,20 +207,6 @@ print(paste("The MSE for a bagged decision tree where B = 1000 is", bagged1000_M
 ```
 
 
-```{r}
-# plot showing fit for bagged 500 model
-
-predictions <- predict(bag1000_college, newdata =test)
-plot_data <- data.frame(Actual = test$Apps, Predicted = predictions)
-
-ggplot(plot_data, aes(x = Actual, y = Predicted)) +
-  geom_point(color = "black") +
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
-  labs(x = "Actual Applications", y = "Predicted Applications") +
-  ggtitle("Actual vs. Predicted Applications (Bagged Tree Model B = 1000)") +
-  theme_minimal()
-
-```
 
 ```{r}
 # use a random forest approach to analyze the data with B = 500
@@ -260,13 +216,6 @@ summary(rf500_college)
 
 rf500_yhat <- predict(rf500_college, newdata=test)
 
-# putting some ggplot2 graphs in to start using for our presentation
-rf500_data <- data.frame(rf500_yhat, test$Apps)
-ggplot(rf500_data, aes(x = rf500_yhat, y = test.Apps)) +
-  geom_point(color = "magenta") +
-  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
-  labs(x = "Y-hat for Random Forest B = 500", y = "Cross-Validation Errors") +
-  theme_minimal()
 # MSE for Random Forest B = 500
 rf500_MSE <- mean((rf500_yhat - test$Apps)^2)
 print(paste("The MSE for a random forest appraoch with # trees = 500 is", rf500_MSE))
@@ -274,20 +223,6 @@ print(paste("The MSE for a random forest appraoch with # trees = 500 is", rf500_
 ```
 
 
-```{r}
-# plot showing fit for bagged 500 model
-
-predictions <- predict(rf500_college, newdata =train)
-plot_data <- data.frame(Actual = train$Apps, Predicted = predictions)
-
-ggplot(plot_data, aes(x = Actual, y = Predicted)) +
-  geom_point(color = "black") +
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
-  labs(x = "Actual Applications", y = "Predicted Applications") +
-  ggtitle("Actual vs. Predicted Applications (Random Forest Tree Model B = 500)") +
-  theme_minimal()
-
-```
 
 ```{r}
 # use a random forest approach to analyze the data with B = 1000
@@ -297,13 +232,6 @@ summary(rf1000_college)
 
 rf1000_yhat <- predict(rf1000_college, newdata=test)
 
-# putting some ggplot2 graphs in to start using for our presentation
-rf1000_data <- data.frame(rf1000_yhat, test$Apps)
-ggplot(rf1000_data, aes(x = rf1000_yhat, y = test.Apps)) +
-  geom_point(color = "magenta") +
-  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
-  labs(x = "Y-hat for Random Forest B = 1000", y = "Cross-Validation Errors") +
-  theme_minimal()
 # MSE for Random Forest B = 1000
 rf1000_MSE <- mean((rf1000_yhat - test$Apps)^2)
 print(paste("The MSE for a random forest appraoch with # trees = 1000 is", rf1000_MSE))
@@ -311,20 +239,7 @@ print(paste("The MSE for a random forest appraoch with # trees = 1000 is", rf100
 ```
 
 
-```{r}
-# plot showing fit for random forest 1000 model
 
-predictions <- predict(rf1000_college, newdata =test)
-plot_data <- data.frame(Actual = test$Apps, Predicted = predictions)
-
-ggplot(plot_data, aes(x = Actual, y = Predicted)) +
-  geom_point(color = "blue") +
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
-  labs(x = "Actual Applications", y = "Predicted Applications") +
-  ggtitle("Actual vs. Predicted Applications (Random Forest Tree Model B = 1000)") +
-  theme_minimal()
-
-```
 
 ```{r}
 
@@ -340,34 +255,12 @@ summary(boost_college)
 
 boost_yhat <- predict(boost_college, newdata=test)
 
-# putting some ggplot2 graphs in to start using for our presentation
-boost_data <- data.frame(boost_yhat, test$Apps)
-ggplot(boost_data, aes(x = boost_yhat, y = test.Apps)) +
-  geom_point(color = "magenta") +
-  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
-  labs(x = "Y-hat for Boosting # Trees = 50", y = "Cross-Validation Errors") +
-  theme_minimal()
 # MSE for Boosting with 50 trees
 boost_MSE <- mean((boost_yhat - test$Apps)^2)
 print(paste("The MSE for a boosting model with 50 trees is", boost_MSE))
 
 ```
 
-
-```{r}
-# plot showing fit for boost model
-
-predictions <- predict(boost_college, newdata =test)
-plot_data <- data.frame(Actual = test$Apps, Predicted = predictions)
-
-ggplot(plot_data, aes(x = Actual, y = Predicted)) +
-  geom_point(color = "cyan3") +
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "magenta3") +
-  labs(x = "Actual Applications", y = "Predicted Applications") +
-  ggtitle("Actual vs. Predicted Applications (Boosting Model)") +
-  theme_minimal()
-
-```
 
 ```{r}
 library(BART)
@@ -384,16 +277,6 @@ print(paste("The MSE for a BART model is", bartMSE))
 
 ```
 
-```{r}
-
-bart_data <- data.frame(yhat.bart, test$Apps)
-ggplot(bart_data, aes(x = yhat.bart, y = test.Apps)) +
-  geom_point(color = "magenta") +
-  geom_smooth(method = "lm", se = FALSE, color = "royalblue") +
-  labs(x = "Y-hat for BART", y = "Cross-Validation Errors") +
-  theme_minimal()
-
-```
 
 
 ```{r}
