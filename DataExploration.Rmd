@@ -58,6 +58,14 @@ range(College$Apps)
 ```
 
 ```{r}
+# transformation of our response variable in order to explore scalability
+
+# College$Apps <- log(College$Apps)
+# range(College$Apps)
+
+```
+
+```{r}
 # check for which predictors are most important so we can remove unnecessary columns
 college_lm <- lm(Apps ~ ., data=College)
 summary(college_lm)
@@ -144,6 +152,30 @@ ggplot(tree_data, aes(x = Tree_Size, y = Cross_Validation_Errors)) +
   geom_line(color = "orange") +  # Add a line connecting points
   labs(x = "Tree Size", y = "Cross-Validation Errors") +  # Customize axis labels
   theme_minimal()  # Apply a minimal theme for a clean appearance
+```
+
+
+```{r}
+# increase number of terminal nodes
+larger_college_tree <- tree(Apps ~ ., data = train, mincut = 2)
+summary(larger_college_tree)
+plot(larger_college_tree, type = "uniform")
+text(larger_college_tree, pretty = 0)
+
+# use LOOCV to determine whether pruning is helpful and determine the optimal size for the pruned tree.
+tree_cv <- cv.tree(larger_college_tree)
+names(tree_cv)
+tree_cv
+
+tree_data <- data.frame(Tree_Size = tree_cv$size, Cross_Validation_Errors = tree_cv$dev)
+
+# pretty graphs for presentation
+ggplot(tree_data, aes(x = Tree_Size, y = Cross_Validation_Errors)) +
+  geom_point(color = "springgreen4", size = 3) +  # Customize points
+  geom_line(color = "orange") +  # Add a line connecting points
+  labs(x = "Tree Size", y = "Cross-Validation Errors") +  # Customize axis labels
+  theme_minimal()  # Apply a minimal theme for a clean appearance
+
 ```
 
 ```{r}
@@ -316,5 +348,9 @@ names <- c("Unpruned", "Pruned", "bagged500", "bagged1000", "RF500", "RF1000", "
 results <- paste(names, "MSE:", round(MSE_vector, 2), ", Error Rate:", round(error_vector, 2))
 
 print(results)
+
+transformed_RMSE<- c(exp(sqrt(unpruned_MSE)), exp(sqrt(pruned_MSE)), exp(sqrt(bagged500_MSE)), exp(sqrt(bagged1000_MSE)), exp(sqrt(rf500_MSE)), exp(sqrt(rf1000_MSE)), exp(sqrt(boost_MSE)), exp(sqrt(h.predict.mse)), exp(sqrt(bartMSE)))
+
+print(transformed_RMSE)
 
 ```
